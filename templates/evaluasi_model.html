@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+
+{% block title %}Evaluasi Model | KaloriMakanan{% endblock %}
+{% block header_title %}Evaluasi Model{% endblock %}
+
+{% block extra_css %}
+<style>
+    .evaluation-page {
+        display: flex;
+        flex-direction: column;
+        gap: 17px;
+    }
+
+    .evaluation-intro {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-left: 5px solid var(--fresh-green);
+        border-radius: 16px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+    }
+
+    .evaluation-intro h2 {
+        color: var(--deep-leaf);
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+
+    .evaluation-intro p {
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    .evaluation-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+    }
+
+    .evaluation-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-top: 4px solid var(--fresh-green);
+        border-radius: 16px;
+        padding: 16px 18px;
+        box-shadow: var(--shadow);
+    }
+
+    .evaluation-card:nth-child(2) {
+        background: var(--bg-card-pink);
+        border-color: var(--border-pink);
+        border-top-color: var(--rose-pink);
+    }
+
+    .evaluation-card:nth-child(3) {
+        border-top-color: var(--lime-matcha);
+    }
+
+    .evaluation-card p {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 600;
+        margin: 0 0 6px;
+    }
+
+    .evaluation-card h3 {
+        color: var(--deep-leaf);
+        font-size: 23px;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .evaluation-card span {
+        display: block;
+        color: var(--text-muted);
+        font-size: 10px;
+        margin-top: 4px;
+    }
+
+    .evaluation-section {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 16px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+    }
+
+    .evaluation-section h3 {
+        color: var(--deep-leaf);
+        font-size: 15px;
+        margin: 0 0 5px;
+    }
+
+    .evaluation-description {
+        color: var(--text-muted);
+        font-size: 11px;
+        margin-bottom: 14px;
+    }
+
+    .evaluation-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .evaluation-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        text-align: center;
+    }
+
+    .evaluation-table th {
+        background: #DCEEE0;
+        color: var(--deep-leaf);
+        font-weight: 700;
+        padding: 12px 10px;
+        white-space: nowrap;
+        border-bottom: 2px solid var(--border-card);
+    }
+
+    .evaluation-table td {
+        padding: 11px 10px;
+        border-bottom: 1px solid #D9E8DC;
+        color: var(--text-muted);
+    }
+
+    .evaluation-table tbody tr:nth-child(even) {
+        background: #E8F4EB;
+    }
+
+    .evaluation-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .class-name {
+        font-weight: 700;
+        color: var(--deep-leaf) !important;
+    }
+
+    .matrix-table {
+        width: 100%;
+        max-width: 550px;
+        margin: 0 auto;
+        border-collapse: separate;
+        border-spacing: 6px;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .matrix-table th {
+        color: var(--deep-leaf);
+        padding: 9px 6px;
+        font-weight: 600;
+    }
+
+    .matrix-table td {
+        background: #E4F2E7;
+        color: var(--deep-leaf);
+        border-radius: 10px;
+        padding: 14px 8px;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .matrix-table .matrix-diagonal {
+        background: #BFEBB0;
+        border: 1px solid #91D47B;
+    }
+
+    .matrix-table .matrix-label {
+        background: var(--bg-card-pink);
+        border: 1px solid var(--border-pink);
+        color: var(--rose-pink);
+        font-size: 11px;
+    }
+
+    .matrix-note {
+        color: var(--text-muted);
+        font-size: 11px;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .evaluation-note {
+        background: var(--bg-card-pink);
+        border: 1px solid var(--border-pink);
+        border-left: 5px solid var(--rose-pink);
+        border-radius: 14px;
+        padding: 15px 18px;
+    }
+
+    .evaluation-note h3 {
+        color: var(--rose-pink);
+        font-size: 13px;
+        margin: 0 0 5px;
+    }
+
+    .evaluation-note p {
+        color: #65344A;
+        font-size: 11px;
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    @media (max-width: 750px) {
+        .evaluation-summary {
+            grid-template-columns: 1fr;
+        }
+
+        .evaluation-section {
+            padding: 14px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="evaluation-page">
+
+    <!-- PENJELASAN -->
+    <div class="evaluation-intro">
+        <h2>Evaluasi Model Decision Tree</h2>
+        <p>
+            Di sini kamu bisa melihat seberapa baik model Decision Tree
+            mengelompokkan makanan ke kategori kalori rendah, sedang, atau tinggi.
+            Pengujiannya menggunakan data karbohidrat, protein, dan lemak dari TKPI 2017.
+        </p>
+    </div>
+
+    <!-- RINGKASAN HASIL -->
+    <div class="evaluation-summary">
+
+        <div class="evaluation-card">
+            <p>Akurasi Model</p>
+            <h3>{{ akurasi }}%</h3>
+            <span>Hasil pengujian model</span>
+        </div>
+
+        <div class="evaluation-card">
+            <p>Data Latih</p>
+            <h3>{{ total_data_latih }}</h3>
+            <span>80% dari keseluruhan data</span>
+        </div>
+
+        <div class="evaluation-card">
+            <p>Data Uji</p>
+            <h3>{{ total_data_uji }}</h3>
+            <span>20% dari keseluruhan data</span>
+        </div>
+
+    </div>
+
+    <!-- CLASSIFICATION REPORT -->
+    <div class="evaluation-section">
+        <h3>Classification Report</h3>
+        <p class="evaluation-description">
+            Hasil pengukuran performa model pada setiap kategori kalori.
+        </p>
+
+        <div class="evaluation-table-wrapper">
+            <table class="evaluation-table">
+                <thead>
+                    <tr>
+                        <th>Kategori</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1-Score</th>
+                        <th>Support</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in hasil_per_kelas %}
+                    <tr>
+                        <td class="class-name">{{ item.nama }}</td>
+                        <td>{{ item.precision }}%</td>
+                        <td>{{ item.recall }}%</td>
+                        <td>{{ item.f1_score }}%</td>
+                        <td>{{ item.support }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- CONFUSION MATRIX -->
+    <div class="evaluation-section">
+        <h3>Confusion Matrix</h3>
+        <p class="evaluation-description">
+            Matriks yang menunjukkan perbandingan hasil klasifikasi
+            sebenarnya dengan hasil prediksi model.
+        </p>
+
+        <div class="evaluation-table-wrapper">
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Aktual / Prediksi</th>
+                        <th colspan="3">Hasil Prediksi</th>
+                    </tr>
+                    <tr>
+                        {% for kelas in label_kelas %}
+                        <th>{{ kelas }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for baris in matriks_konfusi %}
+                    <tr>
+                        <td class="matrix-label">
+                            {% if forloop.counter == 1 %}
+                                Rendah
+                            {% elif forloop.counter == 2 %}
+                                Sedang
+                            {% else %}
+                                Tinggi
+                            {% endif %}
+                        </td>
+
+                        {% for nilai in baris %}
+                        <td class="{% if forloop.parentloop.counter == forloop.counter %}matrix-diagonal{% endif %}">
+                            {{ nilai }}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="matrix-note">
+            Baris menunjukkan kategori aktual, sedangkan kolom menunjukkan kategori hasil prediksi.
+        </p>
+    </div>
+
+    <!-- KETERANGAN -->
+    <div class="evaluation-note">
+        <h3>Keterangan Evaluasi</h3>
+        <p>
+            Precision menunjukkan ketepatan hasil prediksi pada suatu kategori.
+            Recall menunjukkan kemampuan model mengenali data dari kategori tersebut.
+            F1-Score merupakan ukuran gabungan antara Precision dan Recall.
+            Support menunjukkan jumlah data aktual pada setiap kategori.
+        </p>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Daftar Makanan | KaloriMakanan{% endblock %}
+{% block header_title %}Daftar Makanan TKPI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .food-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: var(--shadow-card);
+        margin-bottom: 16px;
+    }
+
+    .food-card h2 {
+        color: var(--deep-leaf);
+        font-size: 17px;
+        margin-bottom: 8px;
+    }
+
+    .food-note, .food-count {
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1.7;
+        margin-bottom: 12px;
+    }
+
+    .food-warning {
+        background: var(--bg-card-pink);
+        border: 1px solid var(--border-pink);
+        border-radius: 12px;
+        padding: 12px 14px;
+        color: #65344A;
+        font-size: 12px;
+        line-height: 1.7;
+        margin-bottom: 14px;
+    }
+
+    .food-filters {
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) minmax(150px, 240px) auto auto;
+        gap: 10px;
+        align-items: end;
+        margin-bottom: 14px;
+    }
+
+    .food-filters label {
+        display: block;
+        color: var(--deep-leaf);
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .food-filters input, .food-filters select, .food-filters button,
+    .food-action {
+        border: 1px solid var(--border-card);
+        border-radius: 9px;
+        min-height: 38px;
+        padding: 8px 10px;
+        font: inherit;
+        font-size: 11px;
+    }
+
+    .food-filters input, .food-filters select {
+        width: 100%;
+        background: var(--input-bg);
+        color: var(--deep-leaf);
+    }
+
+    .food-filters button, .food-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--fresh-green);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .food-table-wrap { overflow-x: auto; }
+    .food-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .food-table th, .food-table td {
+        text-align: left;
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--border-card);
+        white-space: nowrap;
+    }
+    .food-table th { color: var(--deep-leaf); background: var(--bg-panel); }
+    .food-table td small { display: block; color: var(--text-muted); }
+    .food-table .food-actions { display: flex; gap: 6px; }
+    .food-action { min-height: 26px; padding: 4px 7px; text-decoration: none; }
+    .food-empty { color: var(--text-muted); text-align: center !important; padding: 24px !important; }
+    .recommendations {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 10px;
+    }
+    .recommendation {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-card);
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 11px;
+        line-height: 1.7;
+    }
+    .recommendation strong { color: var(--deep-leaf); }
+
+    @media (max-width: 700px) {
+        .food-filters { grid-template-columns: 1fr 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="food-card">
+    <h2>Data makanan TKPI 2017</h2>
+    <p class="food-note">
+        Energi dan zat gizi ditampilkan per 100 gram. Kategori rendah/sedang/tinggi
+        ditentukan dari pembagian kuantil energi pada dataset.
+    </p>
+
+    {% if not nama_tersedia %}
+    <div class="food-warning">
+        Dataset TKPI yang tersedia hanya memiliki kode makanan, bukan nama.
+        Untuk pencarian nama seperti “nasi”, tambahkan
+        <code>dataset/tkpi_nama_makanan.csv</code> dengan kolom
+        <code>KODE</code> dan <code>Nama Makanan</code>. Saat ini kode ditampilkan
+        agar nama makanan tidak ditebak.
+    </div>
+    {% endif %}
+
+    <form method="get" class="food-filters">
+        <div>
+            <label for="food-search">Cari nama atau kode makanan</label>
+            <input id="food-search" name="q" value="{{ pencarian }}" placeholder="Contoh: nasi atau AP001">
+        </div>
+        <div>
+            <label for="food-category">Kategori kalori</label>
+            <select id="food-category" name="kategori">
+                <option value="">Semua kategori</option>
+                {% for kategori in kategori_kalori %}
+                <option value="{{ kategori }}" {% if kategori_terpilih == kategori %}selected{% endif %}>{{ kategori }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit">Cari / Filter</button>
+        <a class="food-action" href="{% url 'daftar_makanan' %}">Reset</a>
+    </form>
+
+    <p class="food-count">
+        {% if jumlah_makanan %}
+            Menampilkan {{ halaman.start_index }}-{{ halaman.end_index }} dari {{ jumlah_makanan }} makanan.
+        {% else %}
+            0 makanan ditemukan.
+        {% endif %}
+    </p>
+    <div class="food-table-wrap">
+        <table class="food-table">
+            <thead>
+                <tr>
+                    <th>Makanan</th>
+                    <th>Energi (kkal/100g)</th>
+                    <th>Karbohidrat (g)</th>
+                    <th>Protein (g)</th>
+                    <th>Lemak (g)</th>
+                    <th>Kategori</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in makanan %}
+                <tr>
+                    <td>{{ item.nama_makanan }}{% if nama_tersedia %}<small>{{ item.KODE }}</small>{% endif %}</td>
+                    <td>{{ item.Energy|floatformat:1 }}</td>
+                    <td>{% if item.Carbohydrate is None %}-{% else %}{{ item.Carbohydrate|floatformat:1 }}{% endif %}</td>
+                    <td>{% if item.Protein is None %}-{% else %}{{ item.Protein|floatformat:1 }}{% endif %}</td>
+                    <td>{% if item.Fat is None %}-{% else %}{{ item.Fat|floatformat:1 }}{% endif %}</td>
+                    <td>{{ item.kategori }}</td>
+                    <td>
+                        <div class="food-actions">
+                            <a class="food-action" href="?rekomendasi={{ item.KODE }}">Alternatif</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td class="food-empty" colspan="7">Tidak ada makanan yang cocok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if halaman.has_other_pages %}
+    <nav class="table-pagination" aria-label="Navigasi daftar makanan">
+        {% if halaman.has_previous %}
+        <a href="?page={{ halaman.previous_page_number }}&q={{ pencarian|urlencode }}&kategori={{ kategori_terpilih|urlencode }}{% if kode_rekomendasi %}&rekomendasi={{ kode_rekomendasi|urlencode }}{% endif %}">Sebelumnya</a>
+        {% endif %}
+        <span>Halaman {{ halaman.number }} dari {{ halaman.paginator.num_pages }}</span>
+        {% if halaman.has_next %}
+        <a href="?page={{ halaman.next_page_number }}&q={{ pencarian|urlencode }}&kategori={{ kategori_terpilih|urlencode }}{% if kode_rekomendasi %}&rekomendasi={{ kode_rekomendasi|urlencode }}{% endif %}">Berikutnya</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+</section>
+
+{% if makanan_pilihan %}
+<section class="food-card">
+    <h2>Alternatif untuk {{ makanan_pilihan.nama_makanan }}</h2>
+    <p class="food-note">
+        Lima makanan dengan kandungan makro yang relatif mirip dan energi lebih rendah.
+        Perbandingan menggunakan karbohidrat, protein, dan lemak yang dinormalisasi.
+    </p>
+    <div class="recommendations">
+        {% for item in rekomendasi %}
+        <div class="recommendation">
+            <strong>{{ item.nama_makanan }}</strong><br>
+            Energi: {{ item.Energy|floatformat:1 }} kkal/100g<br>
+            Karbo: {{ item.Carbohydrate|floatformat:1 }} g ·
+            Protein: {{ item.Protein|floatformat:1 }} g ·
+            Lemak: {{ item.Fat|floatformat:1 }} g<br>
+        </div>
+        {% empty %}
+        <p class="food-note">Tidak ditemukan alternatif dengan energi lebih rendah.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

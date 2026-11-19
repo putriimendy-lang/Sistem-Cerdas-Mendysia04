@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+
+{% block title %}Klasifikasi Kalori | KaloriMakanan{% endblock %}
+
+{% block header_title %}Klasifikasi Kalori{% endblock %}
+
+{% block extra_css %}
+<style>
+    .classification-heading {
+        margin-bottom: 18px;
+    }
+
+    .classification-heading h1 {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--deep-leaf);
+        margin-bottom: 6px;
+    }
+
+    .classification-heading p {
+        font-size: 12px;
+        line-height: 1.7;
+        color: var(--text-muted);
+    }
+
+    .classification-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .classification-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-top: 4px solid var(--fresh-green);
+        border-radius: 20px;
+        padding: 22px;
+        box-shadow: var(--shadow);
+    }
+
+    .result-card {
+        background: var(--bg-card-pink);
+        border: 1px solid var(--border-pink);
+        border-top: 4px solid var(--rose-pink);
+        border-radius: 20px;
+        padding: 22px;
+        box-shadow: var(--shadow);
+        min-height: 225px;
+    }
+
+    .card-heading {
+        margin-bottom: 17px;
+    }
+
+    .card-heading h2 {
+        font-size: 17px;
+        color: var(--deep-leaf);
+        margin-bottom: 5px;
+    }
+
+    .card-heading p {
+        font-size: 11px;
+        line-height: 1.7;
+        color: var(--text-muted);
+    }
+
+    .nutrition-input {
+        margin-bottom: 14px;
+    }
+
+    .nutrition-input label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--deep-leaf);
+        margin-bottom: 7px;
+    }
+
+    .nutrition-input input {
+        width: 100%;
+        padding: 11px 14px;
+        border: 1.5px solid #AFCBB5;
+        border-radius: 12px;
+        outline: none;
+        font-size: 12px;
+        color: var(--deep-leaf);
+        background: var(--input-bg);
+        transition: 0.2s;
+    }
+
+    .nutrition-input input:focus {
+        border-color: var(--fresh-green);
+        box-shadow: 0 0 0 3px rgba(36, 158, 72, 0.14);
+    }
+
+    .input-hint {
+        display: block;
+        font-size: 10px;
+        color: var(--text-muted);
+        margin-top: 5px;
+    }
+
+    .btn-classify {
+        width: 100%;
+        padding: 13px;
+        border: none;
+        border-radius: 13px;
+        background: var(--fresh-green);
+        color: #F4FFF6;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.25s;
+        box-shadow: 0 5px 14px rgba(36, 158, 72, 0.24);
+    }
+
+    .btn-classify:hover {
+        background: var(--sidebar-bg);
+        transform: translateY(-2px);
+    }
+
+    .result-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        background: #F8D3E5;
+        border: 1px solid var(--soft-pink);
+        color: var(--rose-pink);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        margin-bottom: 16px;
+    }
+
+    .result-card h2 {
+        font-size: 17px;
+        color: var(--deep-leaf);
+        margin-bottom: 8px;
+    }
+
+    .result-card p {
+        font-size: 11px;
+        line-height: 1.75;
+        color: #5C4250;
+    }
+
+    .result-value {
+        display: inline-block;
+        margin: 14px 0;
+        padding: 10px 20px;
+        border-radius: 12px;
+        background: var(--soft-green);
+        color: var(--deep-leaf);
+        font-size: 17px;
+        font-weight: 800;
+    }
+
+    .result-low {
+        background: #D4F0DA;
+        color: #165426;
+    }
+
+    .result-medium {
+        background: #FDEBC4;
+        color: #965B08;
+    }
+
+    .result-high {
+        background: #F8D3E5;
+        color: var(--rose-pink);
+    }
+
+    .error-message {
+        background: #FDEAEA;
+        border: 1px solid #F2B2B2;
+        color: #B22828;
+        border-radius: 12px;
+        padding: 12px 15px;
+        font-size: 11px;
+        margin-bottom: 16px;
+    }
+
+    .result-note {
+        margin-top: 15px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border-pink);
+        font-size: 10px !important;
+    }
+
+    .history-table-wrap {
+        width: 100%;
+        margin-top: 10px;
+        overflow-x: auto;
+    }
+
+    .history-card-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .history-card-heading h2 {
+        font-size: 17px;
+        color: var(--deep-leaf);
+    }
+
+    .history-card-link {
+        color: var(--fresh-green);
+        font-size: 11px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .history-card-link:hover {
+        text-decoration: underline;
+    }
+
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 12px;
+    }
+
+    .history-table th,
+    .history-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border-card);
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .history-table th {
+        background: var(--bg-panel);
+        color: var(--deep-leaf);
+        font-weight: 700;
+    }
+
+    .history-table th:nth-child(1),
+    .history-table th:nth-child(2),
+    .history-table th:nth-child(3) {
+        width: 15%;
+    }
+
+    .history-table th:nth-child(4) {
+        width: 20%;
+    }
+
+    .history-table th:nth-child(5) {
+        width: 35%;
+    }
+
+    @media (max-width: 850px) {
+        .classification-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .history-table {
+            min-width: 560px;
+            table-layout: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="classification-heading">
+    <h1>Klasifikasi Kategori Kalori Makanan</h1>
+    <p>
+        Masukkan kandungan nutrisi makanan untuk mengetahui
+        kategori kalorinya menggunakan algoritma Decision Tree.
+    </p>
+</div>
+
+<div class="classification-layout">
+
+    <div class="classification-card">
+        <div class="card-heading">
+            <h2>Input Kandungan Nutrisi</h2>
+            <p>
+                Masukkan nilai karbohidrat, protein, dan lemak
+                dalam satuan gram.
+            </p>
+        </div>
+
+        {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="nutrition-input">
+                <label for="karbohidrat">Karbohidrat (gram)</label>
+                <input
+                    type="number"
+                    id="karbohidrat"
+                    name="karbohidrat"
+                    min="0"
+                    step="any"
+                    placeholder="Contoh: 25"
+                    value="{{ input.karbohidrat|default:'' }}"
+                    required
+                >
+                <span class="input-hint">
+                    Masukkan jumlah karbohidrat makanan.
+                </span>
+            </div>
+
+            <div class="nutrition-input">
+                <label for="protein">Protein (gram)</label>
+                <input
+                    type="number"
+                    id="protein"
+                    name="protein"
+                    min="0"
+                    step="any"
+                    placeholder="Contoh: 10"
+                    value="{{ input.protein|default:'' }}"
+                    required
+                >
+                <span class="input-hint">
+                    Masukkan jumlah protein makanan.
+                </span>
+            </div>
+
+            <div class="nutrition-input">
+                <label for="lemak">Lemak (gram)</label>
+                <input
+                    type="number"
+                    id="lemak"
+                    name="lemak"
+                    min="0"
+                    step="any"
+                    placeholder="Contoh: 5"
+                    value="{{ input.lemak|default:'' }}"
+                    required
+                >
+                <span class="input-hint">
+                    Masukkan jumlah lemak makanan.
+                </span>
+            </div>
+
+            <button type="submit" class="btn-classify">
+                Klasifikasikan Kalori
+            </button>
+        </form>
+    </div>
+
+    <div class="result-card">
+        <div class="result-icon">◈</div>
+
+        <h2>Hasil Klasifikasi</h2>
+
+        {% if hasil %}
+            <p>
+                Berdasarkan data nutrisi yang dimasukkan,
+                model Decision Tree menghasilkan kategori:
+            </p>
+
+            <div class="result-value
+                {% if hasil == 'Rendah' %}result-low
+                {% elif hasil == 'Sedang' %}result-medium
+                {% elif hasil == 'Tinggi' %}result-high
+                {% endif %}">
+                {{ hasil }}
+            </div>
+
+            <p>
+                Estimasi energi dari makronutrien:
+                <strong>{{ estimasi_kalori }} kkal</strong>
+                (4 × karbohidrat + 4 × protein + 9 × lemak).
+            </p>
+
+            <p>
+                Hasil tersebut merupakan prediksi kategori
+                kalori berdasarkan model yang telah dilatih.
+            </p>
+        {% else %}
+            <p>
+                Hasil klasifikasi akan ditampilkan di sini
+                setelah kamu mengisi formulir dan menekan
+                tombol klasifikasi.
+            </p>
+        {% endif %}
+
+        <p class="result-note">
+            Catatan: Hasil klasifikasi merupakan prediksi model,
+            bukan pengukuran kalori secara langsung.
+        </p>
+    </div>
+
+</div>
+
+<div class="classification-card" style="margin-top:16px;">
+    <div class="history-card-heading">
+        <h2>Riwayat Terbaru</h2>
+        <a class="history-card-link" href="{% url 'riwayat' %}">Lihat semua riwayat</a>
+    </div>
+    <div class="history-table-wrap">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Karbo</th>
+                    <th>Protein</th>
+                    <th>Lemak</th>
+                    <th>Kategori</th>
+                    <th>Waktu</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in riwayat %}
+                <tr>
+                    <td>{{ r.karbohidrat }}</td>
+                    <td>{{ r.protein }}</td>
+                    <td>{{ r.lemak }}</td>
+                    <td>{{ r.kategori }}</td>
+                    <td>{{ r.dibuat|date:"d M Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">Belum ada riwayat.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

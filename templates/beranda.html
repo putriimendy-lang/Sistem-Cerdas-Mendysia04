@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Beranda | KaloriMakanan{% endblock %}
+
+{% block header_title %}Beranda{% endblock %}
+
+{% block content %}
+
+<div class="welcome-section">
+    <div class="welcome-text">
+        <span class="welcome-label">SELAMAT DATANG DI KALORIMAKANAN</span>
+
+        <h1>
+            Kenali Kandungan Kalori,
+            <span>Pahami Nutrisi Makananmu!</span>
+        </h1>
+
+        <p>
+            Pelajari kategori kalori makanan berdasarkan kandungan
+            karbohidrat, protein, dan lemak menggunakan algoritma
+            Decision Tree.
+        </p>
+
+        <a href="/klasifikasi/" class="btn-primary">
+            Mulai Klasifikasi
+            <span>→</span>
+        </a>
+    </div>
+
+    <!-- Dekorasi Mangkuk Salad Minimalis -->
+    <div class="welcome-decoration">
+        <div class="decoration-circle">
+            <span>🥗</span>
+        </div>
+    </div>
+</div>
+
+<div class="section-heading">
+    <div>
+        <span class="section-label">RINGKASAN SISTEM</span>
+        <h2>Informasi KaloriMakanan</h2>
+    </div>
+</div>
+
+<div class="summary-grid">
+
+    <div class="summary-card green-card">
+        <div class="summary-icon">▦</div>
+        <p>Total Data Makanan</p>
+        <h3>{{ total_data }}</h3>
+        <span>Data dalam dataset</span>
+    </div>
+
+    <div class="summary-card pink-card">
+        <div class="summary-icon">◎</div>
+        <p>Akurasi Decision Tree</p>
+        <h3>{{ akurasi }}%</h3>
+        <span>Hasil pengujian model</span>
+    </div>
+
+    <div class="summary-card lime-card">
+        <div class="summary-icon">✿</div>
+        <p>Kategori Kalori</p>
+        <h3>3 Kategori</h3>
+        <span>Rendah, Sedang, Tinggi</span>
+    </div>
+
+</div>
+
+<div class="info-section">
+    <div class="info-content">
+        <span class="section-label">TENTANG SISTEM</span>
+        <h2>Bagaimana sistem ini bekerja?</h2>
+        <p>
+            KaloriMakanan menggunakan algoritma Decision Tree
+            untuk mengelompokkan makanan ke dalam kategori kalori
+            berdasarkan kandungan nutrisinya.
+        </p>
+    </div>
+
+    <!-- Ikon Decision Tree SVG -->
+    <div class="info-number">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3V7M12 7L6 11M12 7L18 11M6 11V15M18 11V15M6 15L9 19M18 15L15 19" stroke="var(--rose-pink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="5" r="2" fill="var(--rose-pink)"/>
+            <circle cx="6" cy="13" r="2" fill="var(--rose-pink)"/>
+            <circle cx="18" cy="13" r="2" fill="var(--rose-pink)"/>
+        </svg>
+        <small>Decision Tree</small>
+    </div>
+</div>
+
+{% endblock %}

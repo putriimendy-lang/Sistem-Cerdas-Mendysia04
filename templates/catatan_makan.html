@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Catatan Makan Harian | KaloriMakanan{% endblock %}
+{% block header_title %}Catatan Makan Harian{% endblock %}
+
+{% block extra_css %}
+<style>
+    .diary-grid {
+        display: grid;
+        grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+        gap: 16px;
+        align-items: start;
+    }
+    .diary-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: var(--shadow-card);
+        margin-bottom: 16px;
+        min-width: 0;
+    }
+    .diary-card h2 { color: var(--deep-leaf); font-size: 16px; margin-bottom: 12px; }
+    .diary-field { margin-bottom: 12px; }
+    .diary-field label { display: block; color: var(--deep-leaf); font-size: 11px; font-weight: 600; margin-bottom: 5px; }
+    .diary-field input, .diary-field select {
+        width: 100%; min-height: 39px; padding: 8px 10px;
+        border: 1px solid var(--border-card); border-radius: 9px;
+        background: var(--input-bg); color: var(--deep-leaf); font: inherit; font-size: 11px;
+    }
+    .diary-button {
+        width: 100%; border: 0; border-radius: 10px; padding: 11px;
+        background: var(--fresh-green); color: white; font: inherit;
+        font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+    .diary-error, .diary-warning {
+        background: var(--bg-card-pink); border: 1px solid var(--border-pink);
+        border-radius: 10px; padding: 10px 12px; color: #65344A;
+        font-size: 11px; line-height: 1.6; margin-bottom: 12px;
+    }
+    .diary-summary {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 9px; margin-bottom: 14px;
+    }
+    .diary-stat { background: var(--bg-panel); border-radius: 11px; padding: 11px; }
+    .diary-stat span { display: block; color: var(--text-muted); font-size: 10px; }
+    .diary-stat strong { display: block; color: var(--deep-leaf); font-size: 15px; margin-top: 3px; }
+    .diary-table-wrap { overflow-x: auto; }
+    .diary-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .diary-table th, .diary-table td { text-align: left; padding: 9px 7px; border-bottom: 1px solid var(--border-card); white-space: nowrap; }
+    .diary-table th { color: var(--deep-leaf); background: var(--bg-panel); }
+    .diary-table button { border: 0; background: transparent; color: var(--rose-pink); font: inherit; cursor: pointer; }
+    .diary-empty { color: var(--text-muted); text-align: center !important; padding: 24px !important; }
+    .chart-wrap { height: 230px; }
+    @media (max-width: 850px) { .diary-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 520px) { .diary-summary { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if not nama_tersedia %}
+<div class="diary-warning">
+    Dataset TKPI belum memiliki nama makanan. Catatan akan disimpan menggunakan kode TKPI
+    sampai file pemetaan nama ditambahkan.
+</div>
+{% endif %}
+
+<div class="diary-grid">
+    <section class="diary-card">
+        <h2>Tambah makanan</h2>
+        {% if error %}<div class="diary-error">{{ error }}</div>{% endif %}
+        <form method="get" class="diary-field">
+            <label for="diary-date">Tanggal catatan</label>
+            <input id="diary-date" type="date" name="tanggal" value="{{ tanggal }}">
+            <button class="diary-button" type="submit" style="margin-top:8px;">Pilih tanggal</button>
+        </form>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="tanggal" value="{{ tanggal }}">
+            <input type="hidden" name="action" value="add">
+            <div class="diary-field">
+                <label for="food-code">Makanan</label>
+                <select id="food-code" name="food_code" required>
+                    <option value="">Pilih makanan</option>
+                    {% for item in makanan %}
+                    <option value="{{ item.KODE }}" {% if kode_awal == item.KODE %}selected{% endif %}>
+                        {{ item.nama_makanan }} — {{ item.Energy|floatformat:1 }} kkal/100g
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="diary-field">
+                <label for="portion">Porsi (gram)</label>
+                <input id="portion" type="number" name="portion_grams" min="0.1" max="5000" step="any" placeholder="Contoh: 150" required>
+            </div>
+            <button class="diary-button" type="submit">Simpan catatan</button>
+        </form>
+    </section>
+
+    <section class="diary-card">
+        <h2>Ringkasan {{ tanggal }}</h2>
+        <div class="diary-summary">
+            <div class="diary-stat"><span>Total konsumsi</span><strong>{{ total_kalori }} kkal</strong></div>
+            <div class="diary-stat"><span>Target harian</span><strong>{% if target_kalori %}{{ target_kalori }} kkal{% else %}Belum dihitung{% endif %}</strong></div>
+            <div class="diary-stat"><span>Sisa / selisih</span><strong>{% if kalori_tersisa != None %}{{ kalori_tersisa }} kkal{% else %}—{% endif %}</strong></div>
+        </div>
+        <div class="diary-table-wrap">
+            <table class="diary-table">
+                <thead><tr><th>Makanan</th><th>Porsi</th><th>Energi</th><th></th></tr></thead>
+                <tbody>
+                    {% for item in entri %}
+                    <tr>
+                        <td>{{ item.nama_makanan }}</td>
+                        <td>{{ item.portion_grams|floatformat:1 }} g</td>
+                        <td>{{ item.energy_kcal|floatformat:1 }} kkal</td>
+                        <td>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="entry_id" value="{{ item.pk }}">
+                                <input type="hidden" name="tanggal" value="{{ tanggal }}">
+                                <button type="submit">Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td class="diary-empty" colspan="4">Belum ada makanan pada tanggal ini.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<section class="diary-card">
+    <h2>Total kalori 7 hari terakhir</h2>
+    <div class="chart-wrap"><canvas id="diaryChart"></canvas></div>
+</section>
+
+{{ label_harian|json_script:"diary-labels" }}
+{{ kalori_harian|json_script:"diary-values" }}
+<script>
+    const diaryLabels = JSON.parse(document.getElementById("diary-labels").textContent);
+    const diaryValues = JSON.parse(document.getElementById("diary-values").textContent);
+    const diaryCanvas = document.getElementById("diaryChart");
+    if (diaryCanvas && window.Chart) {
+        new Chart(diaryCanvas, {
+            type: "bar",
+            data: {
+                labels: diaryLabels,
+                datasets: [{
+                    label: "Kalori (kkal)",
+                    data: diaryValues,
+                    backgroundColor: "#249E48",
+                    borderRadius: 7
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+</script>
+{% endblock %}

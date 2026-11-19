@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}KaloriMakanan{% endblock %}</title>
+
+    <!-- Font Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS Utama -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2">
+
+    {% block extra_css %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Perisai Latar (Gradasi Pink) -->
+                        <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" fill="url(#pinkShieldGrad)" stroke="#F29BC2" stroke-width="1.5" stroke-linejoin="round"/>
+                        <!-- Daun Nutrisi di Dalam Perisai -->
+                        <path d="M12 7C10 7 8 8.5 8 11C8 13.5 10 15 12 17C14 15 16 13.5 16 11C16 8.5 14 7 12 7Z" fill="#FFFFFF"/>
+                        <!-- Titik Kalori -->
+                        <circle cx="12" cy="11" r="1.5" fill="#249E48"/>
+                        <!-- Definisi Gradasi Pink -->
+                        <defs>
+                            <linearGradient id="pinkShieldGrad" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#C93B77"/>
+                                <stop offset="1" stop-color="#8A2550"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h2>KaloriMakanan</h2>
+                    <span>Food Nutrition System</span>
+                </div>
+            </div>
+
+            <div class="sidebar-menu">
+                <p class="menu-heading">MENU UTAMA</p>
+
+                <a href="{% url 'beranda' %}" class="menu-card {% if request.path == '/' %}active{% endif %}">
+                    <span class="menu-icon">⌂</span>
+                    <span>Beranda</span>
+                </a>
+
+                <a href="{% url 'klasifikasi' %}" class="menu-card {% if '/klasifikasi' in request.path %}active{% endif %}">
+                    <span class="menu-icon">◈</span>
+                    <span>Klasifikasi Kalori</span>
+                </a>
+
+                <a href="{% url 'daftar_makanan' %}" class="menu-card {% if '/makanan' in request.path %}active{% endif %}">
+                    <span class="menu-icon">▦</span>
+                    <span>Daftar Makanan</span>
+                </a>
+
+                <a href="{% url 'kebutuhan_kalori' %}" class="menu-card {% if '/kebutuhan-kalori' in request.path %}active{% endif %}">
+                    <span class="menu-icon">⌁</span>
+                    <span>Kebutuhan Kalori</span>
+                </a>
+
+                <a href="{% url 'visualisasi' %}" class="menu-card {% if '/visualisasi' in request.path %}active{% endif %}">
+                    <span class="menu-icon">▥</span>
+                    <span>Visualisasi Data</span>
+                </a>
+
+                <a href="{% url 'evaluasi_model' %}" class="menu-card {% if '/evaluasi' in request.path %}active{% endif %}">
+                    <span class="menu-icon">▤</span>
+                    <span>Evaluasi Model</span>
+                </a>
+
+                <a href="{% url 'asisten_ai' %}" class="menu-card {% if '/asisten-ai' in request.path %}active{% endif %}">
+                    <span class="menu-icon">✿</span>
+                    <span>Asisten AI</span>
+                </a>
+
+                <a href="{% url 'riwayat' %}" class="menu-card {% if '/riwayat' in request.path %}active{% endif %}">
+                    <span class="menu-icon">↺</span>
+                    <span>Riwayat</span>
+                </a>
+
+                <a href="{% url 'about' %}" class="menu-card {% if '/about' in request.path %}active{% endif %}">
+                    <span class="menu-icon">ⓘ</span>
+                    <span>About</span>
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <span>KaloriMakanan</span>
+                <small>Decision Tree Classification</small>
+            </div>
+
+        </aside>
+
+        <!-- AREA UTAMA -->
+        <main class="main-content">
+
+            <!-- HEADER -->
+            <header class="top-header">
+                <div>
+                    <p class="header-subtitle">FOOD NUTRITION DASHBOARD</p>
+                    <h3>{% block header_title %}Beranda{% endblock %}</h3>
+                </div>
+
+                <div class="header-profile">
+                    <div class="profile-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="var(--rose-pink)"/>
+                        </svg>
+                    </div>
+                    <span>Pengguna</span>
+                </div>
+            </header>
+
+            <!-- CARD LATAR PEMBUNGKUS KONTEN HALAMAN -->
+            <section class="page-content" id="page-content">
+                {% block content %}
+                {% endblock %}
+            </section>
+
+        </main>
+
+    </div>
+
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>

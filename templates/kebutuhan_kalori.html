@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Kebutuhan Kalori Harian | KaloriMakanan{% endblock %}
+{% block header_title %}Kalkulator Kebutuhan Kalori{% endblock %}
+
+{% block extra_css %}
+<style>
+    .calorie-layout {
+        display: grid;
+        grid-template-columns: minmax(280px, 1fr) minmax(250px, 0.8fr);
+        gap: 16px;
+        align-items: start;
+    }
+    .calorie-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow: var(--shadow-card);
+    }
+    .calorie-card h2 { color: var(--deep-leaf); font-size: 17px; margin-bottom: 8px; }
+    .calorie-card p { color: var(--text-muted); font-size: 11px; line-height: 1.7; margin-bottom: 14px; }
+    .calorie-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .calorie-field { margin-bottom: 11px; }
+    .calorie-field.full { grid-column: 1 / -1; }
+    .calorie-field label { display: block; color: var(--deep-leaf); font-size: 11px; font-weight: 600; margin-bottom: 5px; }
+    .calorie-field input, .calorie-field select {
+        width: 100%; min-height: 39px; padding: 8px 10px;
+        border: 1px solid var(--border-card); border-radius: 9px;
+        background: var(--input-bg); color: var(--deep-leaf); font: inherit; font-size: 11px;
+    }
+    .calorie-button { width: 100%; border: 0; border-radius: 10px; padding: 12px; background: var(--fresh-green); color: white; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .calorie-error { background: var(--bg-card-pink); border: 1px solid var(--border-pink); color: #65344A; border-radius: 10px; padding: 10px 12px; font-size: 11px; margin-bottom: 12px; }
+    .calorie-result { border-left: 4px solid var(--rose-pink); background: var(--bg-card-pink); }
+    .calorie-number { color: var(--rose-pink); font-size: 29px; font-weight: 800; margin: 8px 0; }
+    .calorie-note { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-pink); }
+    @media (max-width: 750px) { .calorie-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 500px) { .calorie-fields { grid-template-columns: 1fr; } .calorie-field.full { grid-column: auto; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calorie-layout">
+    <section class="calorie-card">
+        <h2>Data tubuh dan aktivitas</h2>
+        <p>Perkiraan kebutuhan energi harian berdasarkan rumus Mifflin–St Jeor.</p>
+        {% if error %}<div class="calorie-error">{{ error }}</div>{% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="calorie-fields">
+                <div class="calorie-field">
+                    <label for="sex">Jenis kelamin</label>
+                    <select id="sex" name="jenis_kelamin" required>
+                        <option value="">Pilih</option>
+                        <option value="pria" {% if nilai_form.jenis_kelamin == "pria" %}selected{% endif %}>Pria</option>
+                        <option value="wanita" {% if nilai_form.jenis_kelamin == "wanita" %}selected{% endif %}>Wanita</option>
+                    </select>
+                </div>
+                <div class="calorie-field">
+                    <label for="age">Usia (tahun)</label>
+                    <input id="age" type="number" name="usia" min="15" max="120" value="{{ nilai_form.usia }}" required>
+                </div>
+                <div class="calorie-field">
+                    <label for="weight">Berat (kg)</label>
+                    <input id="weight" type="number" name="berat" min="20" max="400" step="any" value="{{ nilai_form.berat }}" required>
+                </div>
+                <div class="calorie-field">
+                    <label for="height">Tinggi (cm)</label>
+                    <input id="height" type="number" name="tinggi" min="100" max="250" step="any" value="{{ nilai_form.tinggi }}" required>
+                </div>
+                <div class="calorie-field full">
+                    <label for="activity">Tingkat aktivitas</label>
+                    <select id="activity" name="aktivitas" required>
+                        <option value="">Pilih aktivitas</option>
+                        {% for kode, data in tingkat_aktivitas.items %}
+                        <option value="{{ kode }}" {% if nilai_form.aktivitas == kode %}selected{% endif %}>{{ data.0 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button class="calorie-button" type="submit">Hitung kebutuhan</button>
+        </form>
+    </section>
+
+    <section class="calorie-card calorie-result">
+        <h2>Hasil perkiraan</h2>
+        {% if hasil %}
+        <p>BMR (energi saat istirahat)</p>
+        <div class="calorie-number">{{ hasil.bmr }} kkal/hari</div>
+        <p>
+            Dengan aktivitas <strong>{{ hasil.aktivitas_label }}</strong>,
+            kebutuhan harian diperkirakan sekitar:
+        </p>
+        <div class="calorie-number">{{ hasil.kebutuhan }} kkal/hari</div>
+        <p class="calorie-note">
+            Target ini disimpan pada sesi browser ini. Ini perkiraan umum, bukan saran medis.
+        </p>
+        {% else %}
+        <p>Isi data di samping untuk melihat estimasi BMR dan kebutuhan kalori harian.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
